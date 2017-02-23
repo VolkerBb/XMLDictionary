@@ -19,7 +19,7 @@ enum XMLDictionaryNodeNameMode {
     case xmlDictionaryNodeNameModeRootOnly, xmlDictionaryNodeNameModeAlways, xmlDictionaryNodeNameModeNever
 }
 
-class XMLDictionaryParser : NSObject, XMLParserDelegate {
+class XMLDictionaryParser : NSObject, XMLParserDelegate, NSCopying {
     
     var collapseTextNodes:Bool = true
     var stripEmptyNodes:Bool = true
@@ -32,8 +32,8 @@ class XMLDictionaryParser : NSObject, XMLParserDelegate {
     var nodeNameMode:XMLDictionaryNodeNameMode = .xmlDictionaryNodeNameModeRootOnly
     
     private var nodeIdentifier:Int = 0
-    private var root:[String:Any]?
-    private var stack:[[String:Any]]?
+    private var root:XMLTupleHolder?
+    private var stack:[XMLTupleHolder]?
     private var text:String?
     
     static let sharedInstance = XMLDictionaryParser()
@@ -58,7 +58,7 @@ class XMLDictionaryParser : NSObject, XMLParserDelegate {
         root = nil
         stack = nil
         text = nil
-        return result
+        return result?.resolvedDictionary()
     }
     
     func dictionaryWithData(data:Data) -> [String : Any]? {
@@ -84,19 +84,19 @@ class XMLDictionaryParser : NSObject, XMLParserDelegate {
             text = text?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
         }
         if let processingText = text, processingText.characters.count > 0 {
-            if var top = stack?.last {
+            if let top = stack?.last {
                 if let existing = top[XMLDictionaryKeys.xmlDictionaryTextKey.rawValue] {
-                    if var e = existing as? [Any] {
+                    if let e = existing as? XMLArrayHolder {
                         e.append(processingText)
-                        top[XMLDictionaryKeys.xmlDictionaryTextKey.rawValue] = e
                     }
                     else {
-                        top[XMLDictionaryKeys.xmlDictionaryTextKey.rawValue] = [existing, processingText]
+                        top[XMLDictionaryKeys.xmlDictionaryTextKey.rawValue] = XMLArrayHolder([existing, processingText])
                     }
                 }
                 else {
                     top[XMLDictionaryKeys.xmlDictionaryTextKey.rawValue] = processingText
                 }
+//                stack![stack!.count - 1] = top
             }
         }
         text = nil
@@ -108,7 +108,7 @@ class XMLDictionaryParser : NSObject, XMLParserDelegate {
     
     func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
         self.endText()
-        var node:[String:Any] = [:]
+        let node = XMLTupleHolder([:])
         
         switch nodeNameMode {
         case .xmlDictionaryNodeNameModeRootOnly:
@@ -147,50 +147,46 @@ class XMLDictionaryParser : NSObject, XMLParserDelegate {
             root = node
             stack = [node]
             if wrapRootNode {
-                root = [elementName : node]
-                
-                root![XMLDictionaryKeys.xmlDictionaryIdentifier.rawValue] = nodeIdentifier
-                nodeIdentifier = nodeIdentifier + 1
+                root = XMLTupleHolder([elementName : node])
                 stack?.insert(root!, at: 0)
             }
             return
         }
         
-        if var top = stack?.last {
+        if let top = stack?.last {
             if let existing = top[elementName] {
-                if var e = existing as? [Any] {
+                if let e = existing as? XMLArrayHolder {
                     e.append(node)
-                    top[elementName] = e
+//                    top[elementName] = e
                 }
                 else {
-                    top[elementName] = [existing, node]
+                    top[elementName] = XMLArrayHolder([existing, node])
                 }
             }
             else {
                 if alwaysUseArrays {
-                    top[elementName] = [node]
+                    top[elementName] = XMLArrayHolder([node])
                 }
                 else {
                     top[elementName] = node
                 }
             }
-            stack?.append(node)
+            //stack![stack!.count - 1] = top
         }
+        stack?.append(node)
         
     }
     
     func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
         self.endText()
-        if var top = stack?.popLast() {
-            guard let _ = top.attributes(),
-                let _ = top.childNodes(),
-                let _ = top.comments() else {
-                    var nextTop:[String:Any] = stack?.last ?? [:]
-                    if let nodeName = self.nameForNode(node: top, inDictionary: nextTop) {
+        if let top = stack?.popLast() {
+            if (top.dict.attributes() == nil && top.dict.childNodes() == nil && top.dict.comments() == nil) {
+                    let nextTop:XMLTupleHolder = stack?.last ?? XMLTupleHolder([:])
+                    if let nodeName = self.nameForNode(node: top, inParentNode: nextTop) {
                         let parentNode = nextTop[nodeName]
-                        if let innerText = top.innerText() {
+                        if let innerText = top.dict.innerText() {
                             if collapseTextNodes {
-                                if var parentArray = parentNode as? [Any] {
+                                if let parentArray = parentNode as? XMLArrayHolder {
                                     parentArray[parentArray.count - 1] = innerText
                                 }
                                 else {
@@ -200,9 +196,9 @@ class XMLDictionaryParser : NSObject, XMLParserDelegate {
                         }
                         else {
                             if stripEmptyNodes {
-                                if var parentArray = parentNode as? [Any] {
+                                if let parentArray = parentNode as? XMLArrayHolder {
                                     parentArray.removeLast()
-                                    nextTop[nodeName] = parentArray
+//                                    nextTop[nodeName] = parentArray
                                 }
                                 else {
                                     nextTop[nodeName] = nil
@@ -213,7 +209,12 @@ class XMLDictionaryParser : NSObject, XMLParserDelegate {
                                 top[XMLDictionaryKeys.xmlDictionaryTextKey.rawValue] = ""
                             }
                         }
-                        
+                        if stack!.count > 0 {
+//                            stack![stack!.count - 1] = nextTop
+                        }
+                        else {
+                            stack?.append(nextTop)
+                        }
                     }
                     return
             }
@@ -230,7 +231,7 @@ class XMLDictionaryParser : NSObject, XMLParserDelegate {
     
     func parser(_ parser: XMLParser, foundComment comment: String) {
         if preserveComments {
-            if var top = stack?.last {
+            if let top = stack?.last {
                 if var comments = top[XMLDictionaryKeys.xmlDictionaryCommentsKey.rawValue] as? [String] {
                     comments.append(comment)
                     top[XMLDictionaryKeys.xmlDictionaryCommentsKey.rawValue] = comments
@@ -242,19 +243,19 @@ class XMLDictionaryParser : NSObject, XMLParserDelegate {
         }
     }
     
-    func nameForNode(node:[String:Any], inDictionary dict:[String:Any]) -> String? {
-        if let result = node.nodeName() {
+    func nameForNode(node:XMLTupleHolder, inParentNode parentNode:XMLTupleHolder) -> String? {
+        if let result = node.dict.nodeName() {
             return result
         }
-        for (name, value) in dict {
-            if let object = value as? [String:Any] {
-                if XMLDictionaryParser.equalsIdentifier(dict: object, dict2: node) {
+        for (name, value) in parentNode.dict {
+            if let object = value as? XMLTupleHolder {
+                if object == node {
                     return name
                 }
             }
-            else if let array = value as? [[String: Any]] {
-                for entry in array {
-                    if XMLDictionaryParser.equalsIdentifier(dict: entry, dict2: node) {
+            else if let array = value as? XMLArrayHolder {
+                for entry in array.array {
+                    if let tuple = entry as? XMLTupleHolder, tuple == node {
                         return name
                     }
                 }
@@ -264,14 +265,21 @@ class XMLDictionaryParser : NSObject, XMLParserDelegate {
     }
     
     static func XMLStringForNode(node:Any, withNodeName nodeName:String) -> String {
-        if let array = node as? [Any] {
+        var observable = node
+        if let xaH = node as? XMLArrayHolder {
+            observable = xaH.array
+        }
+        else if let xtH = node as? XMLTupleHolder {
+            observable = xtH.dict
+        }
+        if let array = observable as? [Any] {
             var nodes:[String] = []
             for individualNode in array {
                 nodes.append(XMLDictionaryParser.XMLStringForNode(node: individualNode, withNodeName: nodeName))
             }
             return nodes.joined(separator: "\n")
         }
-        else if let dict = node as? [String : Any] {
+        else if let dict = observable as? [String : Any] {
             let attributes = dict.attributes()
             var attributeString = ""
             attributes?.forEach({ (key, value) in
@@ -286,7 +294,7 @@ class XMLDictionaryParser : NSObject, XMLParserDelegate {
             }
         }
         else {
-            return "<\(nodeName)>\((node as AnyObject).description.xmlEncodedString())</\(nodeName)>"
+            return "<\(nodeName)>\((observable as AnyObject).description.xmlEncodedString())</\(nodeName)>"
         }
     }
     

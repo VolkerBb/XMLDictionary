@@ -13,14 +13,14 @@ enum XMLDictionaryKeys : String {
     xmlDictionaryCommentsKey = "__comments",
     xmlDictionaryTextKey = "__text",
     xmlDictionaryNodeNameKey = "__name",
-    xmlDictionaryAttributePrefix = "_",
-    xmlDictionaryIdentifier = "__identifier"
+    xmlDictionaryAttributePrefix = "_"
+    
     func length() -> Int {
         return self.rawValue.characters.count
     }
     func isArtificialNonAttributesKey() -> Bool {
         switch self {
-        case .xmlDictionaryCommentsKey, .xmlDictionaryNodeNameKey, .xmlDictionaryTextKey, .xmlDictionaryIdentifier:
+        case .xmlDictionaryCommentsKey, .xmlDictionaryNodeNameKey, .xmlDictionaryTextKey:
             return true
         default:
             return false
@@ -88,10 +88,7 @@ extension Dictionary where Key: ExpressibleByStringLiteral {
         var result:[String:Any] = [:]
         self.forEach { (key, value) in
             let sKey = String(describing: key)
-            if let artificialKey = XMLDictionaryKeys(rawValue: sKey) {
-                if artificialKey == .xmlDictionaryIdentifier {
-                    result[sKey] = value
-                }
+            if let _ = XMLDictionaryKeys(rawValue: sKey) {
                 return
             }
             if sKey.hasPrefix(XMLDictionaryKeys.xmlDictionaryAttributePrefix.rawValue) {
@@ -139,18 +136,6 @@ extension Dictionary where Key: ExpressibleByStringLiteral {
         }
         return XMLDictionaryParser.XMLStringForNode(node: self, withNodeName: nodeName ?? "root")
     }
-}
-
-extension XMLDictionaryParser {
-
-    static func equalsIdentifier(dict:[String:Any], dict2:[String:Any]) -> Bool {
-        guard let id1 = dict[XMLDictionaryKeys.xmlDictionaryIdentifier.rawValue] as? Int,
-            let id2 = dict2[XMLDictionaryKeys.xmlDictionaryIdentifier.rawValue] as? Int else {
-                return false
-        }
-        return id1 == id2
-    }
-    
 }
 
 extension String {
