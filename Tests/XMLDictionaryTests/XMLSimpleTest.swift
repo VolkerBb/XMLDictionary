@@ -45,6 +45,11 @@ class XMLSimpleTest: XCTestCase {
             }
             XCTAssert(v == "bk101", "book not found")
             
+            if let bookNode = xmlDictionary.value(forKeyPath: "book.1") as? [String : Any] {
+                let idAttribute = attrs.attributeForKey(key: "id")
+                XCTAssert(idAttribute == "bk102", "book id attribute not found")
+            }
+            
             let dict = xmlDictionary.dictionaryValue(forKeyPath: "book")
             XCTAssert((dict!["_id"] as! String) == "bk101", "book not found")
             
