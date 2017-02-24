@@ -10,9 +10,11 @@ import XCTest
 
 class XMLSimpleTest: XCTestCase {
 
+    var bundle:Bundle?
+    
     override func setUp() {
         super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+        self.bundle = Bundle(for: XMLSimpleTest.self)
     }
     
     override func tearDown() {
@@ -20,14 +22,22 @@ class XMLSimpleTest: XCTestCase {
         super.tearDown()
     }
 
-    func testExample() {
-        if let url = URL(string: "http://www.ibiblio.org/xml/examples/shakespeare/all_well.xml"),
-            let xmlString = try? String(contentsOf: url, encoding: .utf8) {
-            
+    func parse(url: URL) {
+        if let xmlString = try? String(contentsOf: url, encoding: .utf8) {
             NSLog("string: %@", [xmlString])
             let xmlDictionary = XMLDictionary.dictionaryWithXMLString(xmlString: xmlString)
             NSLog("dictionary: %@", [xmlDictionary])
-            
+        }
+    }
+    
+    func testExample() {
+        if let path = bundle?.path(forResource: "example", ofType: "xml") {
+            let url =  URL(fileURLWithPath: path)
+            self.parse(url: url)
+        }
+
+        if let url2 = URL(string: "http://www.ibiblio.org/xml/examples/shakespeare/all_well.xml") {
+            self.parse(url: url2)
         }
     }
 

@@ -96,7 +96,6 @@ class XMLDictionaryParser : NSObject, XMLParserDelegate, NSCopying {
                 else {
                     top[XMLDictionaryKeys.xmlDictionaryTextKey.rawValue] = processingText
                 }
-//                stack![stack!.count - 1] = top
             }
         }
         text = nil
@@ -157,7 +156,6 @@ class XMLDictionaryParser : NSObject, XMLParserDelegate, NSCopying {
             if let existing = top[elementName] {
                 if let e = existing as? XMLArrayHolder {
                     e.append(node)
-//                    top[elementName] = e
                 }
                 else {
                     top[elementName] = XMLArrayHolder([existing, node])
@@ -171,7 +169,6 @@ class XMLDictionaryParser : NSObject, XMLParserDelegate, NSCopying {
                     top[elementName] = node
                 }
             }
-            //stack![stack!.count - 1] = top
         }
         stack?.append(node)
         
@@ -198,21 +195,16 @@ class XMLDictionaryParser : NSObject, XMLParserDelegate, NSCopying {
                             if stripEmptyNodes {
                                 if let parentArray = parentNode as? XMLArrayHolder {
                                     parentArray.removeLast()
-//                                    nextTop[nodeName] = parentArray
                                 }
                                 else {
                                     nextTop[nodeName] = nil
                                 }
                             }
                             else if !collapseTextNodes {
-//MARK: WARNING top!? oder nextTop?
                                 top[XMLDictionaryKeys.xmlDictionaryTextKey.rawValue] = ""
                             }
                         }
-                        if stack!.count > 0 {
-//                            stack![stack!.count - 1] = nextTop
-                        }
-                        else {
+                        if stack!.count == 0 {
                             stack?.append(nextTop)
                         }
                     }
