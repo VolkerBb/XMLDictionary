@@ -8,37 +8,34 @@
 
 import Foundation
 
-typealias XMLDictionary = Dictionary<String, Any>
-
-enum XMLDictionaryAttributesMode {
+public enum XMLDictionaryAttributesMode {
     case xmlDictionaryAttributesModePrefixed, xmlDictionaryAttributesModeDictionary,
     xmlDictionaryAttributesModeUnprefixed, xmlDictionaryAttributesModeDiscard
 }
 
-enum XMLDictionaryNodeNameMode {
+public enum XMLDictionaryNodeNameMode {
     case xmlDictionaryNodeNameModeRootOnly, xmlDictionaryNodeNameModeAlways, xmlDictionaryNodeNameModeNever
 }
 
-class XMLDictionaryParser : NSObject, XMLParserDelegate, NSCopying {
+public class XMLDictionaryParser : NSObject, XMLParserDelegate, NSCopying {
     
-    var collapseTextNodes:Bool = true
-    var stripEmptyNodes:Bool = true
-    var trimWhiteSpace:Bool = true
-    var alwaysUseArrays:Bool = false
-    var preserveComments:Bool = false
-    var wrapRootNode:Bool = false
+    public var collapseTextNodes:Bool = true
+    public var stripEmptyNodes:Bool = true
+    public var trimWhiteSpace:Bool = true
+    public var alwaysUseArrays:Bool = false
+    public var preserveComments:Bool = false
+    public var wrapRootNode:Bool = false
     
-    var attributesMode:XMLDictionaryAttributesMode = .xmlDictionaryAttributesModePrefixed
-    var nodeNameMode:XMLDictionaryNodeNameMode = .xmlDictionaryNodeNameModeRootOnly
+    public var attributesMode:XMLDictionaryAttributesMode = .xmlDictionaryAttributesModePrefixed
+    public var nodeNameMode:XMLDictionaryNodeNameMode = .xmlDictionaryNodeNameModeRootOnly
     
-    private var nodeIdentifier:Int = 0
     private var root:XMLTupleHolder?
     private var stack:[XMLTupleHolder]?
     private var text:String?
     
-    static let sharedInstance = XMLDictionaryParser()
+    public static let sharedInstance = XMLDictionaryParser()
     
-    func copy(with zone: NSZone? = nil) -> Any {
+    public func copy(with zone: NSZone? = nil) -> Any {
         let copy = XMLDictionaryParser()
         copy.collapseTextNodes = self.collapseTextNodes
         copy.stripEmptyNodes = self.stripEmptyNodes
@@ -51,7 +48,7 @@ class XMLDictionaryParser : NSObject, XMLParserDelegate, NSCopying {
         return copy
     }
     
-    func dictionaryWithParser(parser:XMLParser) -> [String : Any]? {
+    public func dictionaryWithParser(parser:XMLParser) -> [String : Any]? {
         parser.delegate = self
         parser.parse()
         let result = root
@@ -61,15 +58,15 @@ class XMLDictionaryParser : NSObject, XMLParserDelegate, NSCopying {
         return result?.resolvedDictionary()
     }
     
-    func dictionaryWithData(data:Data) -> [String : Any]? {
+    public func dictionaryWithData(data:Data) -> [String : Any]? {
         return self.dictionaryWithParser(parser: XMLParser(data: data))
     }
     
-    func dictionaryWithString(string:String) -> [String : Any]? {
+    public func dictionaryWithString(string:String) -> [String : Any]? {
         return self.dictionaryWithData(data: string.data(using: .utf8)!)
     }
     
-    func dictionaryWithFile(path:String) -> [String : Any]? {
+    public func dictionaryWithFile(path:String) -> [String : Any]? {
         do {
             let data = try Data(contentsOf: URL(fileURLWithPath: path))
             return self.dictionaryWithData(data: data)
@@ -105,7 +102,7 @@ class XMLDictionaryParser : NSObject, XMLParserDelegate, NSCopying {
         text = (text ?? "") + appendingText
     }
     
-    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
+    public func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
         self.endText()
         let node = XMLTupleHolder([:])
         
@@ -174,7 +171,7 @@ class XMLDictionaryParser : NSObject, XMLParserDelegate, NSCopying {
         
     }
     
-    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
+    public func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
         self.endText()
         if let top = stack?.popLast() {
             if (top.dict.attributes() == nil && top.dict.childNodes() == nil && top.dict.comments() == nil) {
@@ -213,15 +210,15 @@ class XMLDictionaryParser : NSObject, XMLParserDelegate, NSCopying {
         }
     }
     
-    func parser(_ parser: XMLParser, foundCharacters string: String) {
+    public func parser(_ parser: XMLParser, foundCharacters string: String) {
         self.addText(appendingText: string)
     }
     
-    func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) {
+    public func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) {
         self.addText(appendingText: String(data: CDATABlock, encoding: .utf8) ?? "")
     }
     
-    func parser(_ parser: XMLParser, foundComment comment: String) {
+    public func parser(_ parser: XMLParser, foundComment comment: String) {
         if preserveComments {
             if let top = stack?.last {
                 if var comments = top[XMLDictionaryKeys.xmlDictionaryCommentsKey.rawValue] as? [String] {

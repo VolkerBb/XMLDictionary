@@ -28,37 +28,39 @@ enum XMLDictionaryKeys : String {
     }
 }
 
-extension Dictionary where Key: ExpressibleByStringLiteral {
+public typealias XMLDictionary = Dictionary<String, Any>
+
+public extension Dictionary where Key: ExpressibleByStringLiteral {
     
-    static func dictionaryWithXMLParser(parser:XMLParser) -> [String: Any]? {
+    public static func dictionaryWithXMLParser(parser:XMLParser) -> [String: Any]? {
         if let copy = XMLDictionaryParser.sharedInstance.copy() as? XMLDictionaryParser {
             return copy.dictionaryWithParser(parser: parser)
         }
         return nil
     }
     
-    static func dictionaryWithXMLData(xmlData:Data) -> [String: Any]? {
+    public static func dictionaryWithXMLData(xmlData:Data) -> [String: Any]? {
         if let copy = XMLDictionaryParser.sharedInstance.copy() as? XMLDictionaryParser {
             return copy.dictionaryWithData(data: xmlData)
         }
         return nil
     }
     
-    static func dictionaryWithXMLString(xmlString: String) -> [String: Any]? {
+    public static func dictionaryWithXMLString(xmlString: String) -> [String: Any]? {
         if let copy = XMLDictionaryParser.sharedInstance.copy() as? XMLDictionaryParser {
             return copy.dictionaryWithString(string: xmlString)
         }
         return nil
     }
     
-    static func dictionaryWithXMLFile(xmlFilePath: String) -> [String: Any]? {
+    public static func dictionaryWithXMLFile(xmlFilePath: String) -> [String: Any]? {
         if let copy = XMLDictionaryParser.sharedInstance.copy() as? XMLDictionaryParser {
             return copy.dictionaryWithFile(path: xmlFilePath)
         }
         return nil
     }
     
-    func attributes() -> [String : String]? {
+    public func attributes() -> [String : String]? {
         if let attributes = self[XMLDictionaryKeys.xmlDictionaryAttributesKey.rawValue as! Key] as? [String: String] {
             return attributes.count > 0 ? attributes : nil
         }
@@ -84,7 +86,7 @@ extension Dictionary where Key: ExpressibleByStringLiteral {
         }
     }
     
-    func childNodes() -> [String: Any]? {
+    public func childNodes() -> [String: Any]? {
         var result:[String:Any] = [:]
         self.forEach { (key, value) in
             let sKey = String(describing: key)
@@ -99,15 +101,15 @@ extension Dictionary where Key: ExpressibleByStringLiteral {
         return result.count > 0 ? result : nil
     }
     
-    func comments() -> [String]? {
+    public func comments() -> [String]? {
         return self[XMLDictionaryKeys.xmlDictionaryCommentsKey.rawValue as! Key] as? [String]
     }
     
-    func nodeName() -> String? {
+    public func nodeName() -> String? {
         return self[XMLDictionaryKeys.xmlDictionaryNodeNameKey.rawValue as! Key] as? String
     }
     
-    func innerText() -> Any? {
+    public func innerText() -> Any? {
         let tmpResult = self[XMLDictionaryKeys.xmlDictionaryTextKey.rawValue as! Key]
         if let result = tmpResult as? [String] {
             return result.joined(separator: "\n")
@@ -115,7 +117,7 @@ extension Dictionary where Key: ExpressibleByStringLiteral {
         return tmpResult
     }
     
-    func innerXML() -> String {
+    public func innerXML() -> String {
         var nodes:[String] = []
         nodes.append(contentsOf: self.comments()?.map({ (comment) -> String in
             return "<!--\(comment.xmlEncodedString())-->"
@@ -129,7 +131,7 @@ extension Dictionary where Key: ExpressibleByStringLiteral {
         return nodes.joined(separator: "\n")
     }
     
-    func xmlString() -> String {
+    public func xmlString() -> String {
         let nodeName = self.nodeName()
         if self.count == 1 && nodeName == nil {
             return self.innerXML()
