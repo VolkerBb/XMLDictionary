@@ -24,14 +24,13 @@ Thread Safety
 
 XMLDictionary's methods should all be thread safe. It is safe to use multiple XMLDictionaryParsers concurrently on different threads, but it is not safe to call the same parser concurrently on multiple threads.
 
-
 ## Installation
 To install this Swift version add the following line to Dependencies in `Package.swift`:
 
 ```swift
-.Package(url: "https://github.com/VolkerBb/XMLDictionary.git", majorVersion: 0)
+.Package(url: "https://github.com/VolkerBb/XMLDictionary.git", Version(2, 0, 0, prereleaseIdentifiers: ["rc.2"]))
 ```
-NOTE: Not tagged, so this is not working yet.
+NOTE: This is prerelease software and not fully tested yet. Specifically, only the default settings for the `XMLDictionaryParser` have been tested so far.
 
 XMLDictionaryParser
 ---------------------
@@ -40,107 +39,139 @@ The XMLDictionaryParser class is responsible for parsing an XML file into a dict
 
 You can create new instances of XMLDictionaryParser if you need to use multiple different settings for different dictionaries. Once you have created an XMLDictionaryParser you can use the following methods to parse XML files using that specific parser instance:
 
-    - (NSDictionary *)dictionaryWithData:(NSData *)data;
-    - (NSDictionary *)dictionaryWithString:(NSString *)string;
-    - (NSDictionary *)dictionaryWithFile:(NSString *)path;
-    - (NSDictionary *)dictionaryWithParser:(NSXMLParser *)parser;
+```swift
+    public static func dictionaryWithXMLParser(parser: XMLParser) -> [String : Any]?
+    public static func dictionaryWithXMLData(xmlData: Data) -> [String : Any]?
+    public static func dictionaryWithXMLString(xmlString: String) -> [String : Any]?
+    public static func dictionaryWithXMLFile(xmlFilePath: String) -> [String : Any]?
+```
 
-Alternatively, you can simply modify the settings of `[XMLDictionaryParser sharedInstance]` to affect the settings for all dictionaries parsed subsequently using the NSDictionary category extension methods.
+Alternatively, you can simply modify the settings of `XMLDictionaryParser.sharedInstance` to affect the settings for all dictionaries parsed subsequently using the NSDictionary category extension methods.
 
 Use the following properties to tweak the parsing behaviour:
 
-    @property (nonatomic, assign) BOOL collapseTextNodes;
-
+```swift
+    public var collapseTextNodes: Bool
+```
+    
 If YES (the default value), tags that contain only text and have no children, attributes or comments will be collapsed into a single string object, simplifying traversal of the object tree.
 
-    @property (nonatomic, assign) BOOL stripEmptyNodes;
-
+```swift
+    public var stripEmptyNodes: Bool
+```
+    
 If YES (the default value), tags that are empty (have no children, attributes, text or comments) will be stripped.
 
-    @property (nonatomic, assign) BOOL trimWhiteSpace;
+```swift
+    public var trimWhiteSpace: Bool
+```
 
 If YES (the default value), leading and trailing white space will be trimmed from text nodes, and text nodes containing only white space will be omitted from the dictionary.
 
-    @property (nonatomic, assign) BOOL alwaysUseArrays;
+```swift
+    public var alwaysUseArrays: Bool
+```
 
-If `YES`, the every child node will be represented as an array, even if there is only one of them. This simplifies the logic needed to cope with properties that may be duplicated because you don't need to use `[value isKindOfClass:[NSArray class]]` to check the for the singular case. Defaults to `NO`.
+If `true`, the every child node will be represented as an array, even if there is only one of them. This simplifies the logic needed to cope with properties that may be duplicated because you don't need to use to check the for the singular case. Defaults to `false`.
 
-    @property (nonatomic, assign) BOOL preserveComments;
+```swift
+    public var preserveComments: Bool
+```
 
-If `YES`, XML comments will be grouped into an array under the key `__comments` and can be accessed via the `comments` method. Defaults to `NO`.
+If `true`, XML comments will be grouped into an array under the key `__comments` and can be accessed via the `comments` method. Defaults to `false`.
 
-    @property (nonatomic, assign) XMLDictionaryAttributesMode attributesMode;
+```swift
+    public var attributesMode: XMLDictionary.XMLDictionaryAttributesMode
+```    
 
-This property controls how XML attributes are handled. The default is `XMLDictionaryAttributesModePrefixed` meaning that attributes will be included in the dictionary, with an _ (underscore) prefix to avoid namespace collisions. Alternative values are `XMLDictionaryAttributesModeDictionary`, which will place all the attributes in a separate dictionary, `XMLDictionaryAttributesModeUnprefixed`, which includes the attributes without prefix (which may cause collisions with nodes) and `XMLDictionaryAttributesModeDiscard`, which will strip the attributes.
+This property controls how XML attributes are handled. The default is `xmlDictionaryAttributesModePrefixed` meaning that attributes will be included in the dictionary, with an _ (underscore) prefix to avoid namespace collisions. Alternative values are `xmlDictionaryAttributesModeDictionary`, which will place all the attributes in a separate dictionary, `xmlDictionaryAttributesModeUnprefixed`, which includes the attributes without prefix (which may cause collisions with nodes) and `xmlDictionaryAttributesModeDiscard`, which will strip the attributes.
 
-    @property (nonatomic, assign) XMLDictionaryNodeNameMode nodeNameMode;
+```swift
+    public var nodeNameMode: XMLDictionary.XMLDictionaryNodeNameMode
+```
 
-This property controls how the node name is handled. The default value is `XMLDictionaryNodeNameModeRootOnly`, meaning that the node name will only be included in the root dictionary (the names for the children can be inferred from the dictionary keys, but the `nodeName` method won't work for anything except the root node). Alternative values are `XMLDictionaryNodeNameModeAlways`, meaning that the node name will be included in the dictionary with the key `__name` (and can be accessed using the `nodeName`) method, or `XMLDictionaryNodeNameModeNever` which will never include the `__name' key.
+This property controls how the node name is handled. The default value is `xmlDictionaryNodeNameModeRootOnly`, meaning that the node name will only be included in the root dictionary (the names for the children can be inferred from the dictionary keys, but the `nodeName` method won't work for anything except the root node). Alternative values are `xmlDictionaryNodeNameModeAlways`, meaning that the node name will be included in the dictionary with the key `__name` (and can be accessed using the `nodeName`) method, or `xmlDictionaryNodeNameModeNever` which will never include the `__name` key.
 
 
-Category Methods
+Dictionary extension 
 -----------------
 
-XMLDictionary extends NSDictionary with the following methods:
+XMLDictionary as a typealias for [String : Any] extends Dictionary `where Key : ExpressibleByStringLiteral` with the following methods:
 
-  + (NSDictionary *)dictionaryWithXMLParser:(NSParser *)parser;
-
+```swift
+    public static func dictionaryWithXMLParser(parser: XMLParser) -> [String : Any]?
+```
 Create a new NSDictionary object from an existing NSXMLParser.  Useful if fetching data through AFNetworking.
 
-	+ (NSDictionary *)dictionaryWithXMLData:(NSData *)data;
-
+```swift
+    public static func dictionaryWithXMLData(xmlData: Data) -> [String : Any]?
+```
 Create a new NSDictionary object from XML-encoded data.
 
-	+ (NSDictionary *)dictionaryWithXMLString:(NSString *)string;
-
+```swift
+    public static func dictionaryWithXMLString(xmlString: String) -> [String : Any]?
+```
 Create a new NSDictionary object from XML-encoded string.
 
-	+ (NSDictionary *)dictionaryWithXMLFile:(NSString *)path;
-
+```swift
+    public static func dictionaryWithXMLFile(xmlFilePath: String) -> [String : Any]?
+```
 Create a new NSDictionary object from and XML-encoded file.
 
-	- (NSString *)attributeForKey:(NSString *)key;
-
+```swift
+    // TODO: - (NSString *)attributeForKey:(NSString *)key; 
+```
 Get the XML attribute for a given key (key name should not include prefix).
 
-	- (NSDictionary *)attributes;
-
+```swift
+    public func attributes() -> [String : String]?
+```	
 Get a dictionary of all XML attributes for a given node's dictionary. If the node has no attributes then this will return nil.
 
-	- (NSDictionary *)childNodes;
-
+```swift
+    public func childNodes() -> [String : Any]?
+```		
 Get a dictionary of all child nodes for a given node's dictionary. If multiple nodes have the same name they will be grouped into an array. If the node has no children then this will return nil.
 
-	- (NSArray *)comments;
-
+```swift
+    public func comments() -> [String]?
+```		
 Get an array of all comments for a given node. Note that the nesting relative to other nodes is not preserved. If the node has no comments then this will return nil.
 
-	- (NSString *)nodeName;
-
+```swift
+    public func nodeName() -> String?
+```		
 Get the name of the node. If the name is not known this will return nil.
 
-	- (NSString *)innerText;
-
+```swift
+    public func innerText() -> Any?
+```		
 Get the text content of the node. If the node has no text content, this will return nil;
 
-	- (NSString *)innerXML;
-
+```swift
+    public func innerXML() -> String
+```		
 Get the contents of the node as an XML-encoded string. This XML string will not include the container node itself.
 
-	- (NSString *)XMLString;
-
+```swift
+    public func xmlString() -> String
+```		
 Get the node and its content as an XML-encoded string. If the node name is not known, the top level tag will be called `<root>`.
 
-    - (NSArray *)arrayValueForKeyPath:(NSString *)keyPath;
-
+```swift
+    //TODO: - (NSArray *)arrayValueForKeyPath:(NSString *)keyPath;
+```		
 Works just like `valueForKeyPath:` except that the value returned will always be an array. So if there is only a single value, it will be returned as `@[value]`.
 
-    - (NSString *)stringValueForKeyPath:(NSString *)keyPath;
-
+```swift
+    //TODO: - (NSString *)stringValueForKeyPath:(NSString *)keyPath;
+```		
 Works just like `valueForKeyPath:` except that the value returned will always be a string. So if the value is a dictionary, the text value of `innerText` will be returned, and if the value is an array, the first item will be returned.
 
-    - (NSDictionary *)dictionaryValueForKeyPath:(NSString *)keyPath;
 
+```swift
+    //TODO: - (NSDictionary *)dictionaryValueForKeyPath:(NSString *)keyPath;
+```    
 Works just like `valueForKeyPath:` except that the value returned will always be a dictionary. So if the collapseTextNodes option is enabled and the value is a string, this will convert it back to a dictionary before returning, and if the value is an array, the first item will be returned.
 
 
@@ -149,9 +180,12 @@ Usage
 
 The simplest way to load an XML file is as follows:
 
-	NSString *filePath = [[NSBundle mainBundle] pathForResource:@"someFile" ofType:@"xml"];
-	NSDictionary *xmlDoc = [NSDictionary dictionaryWithXMLFile:filePath];
-
+```swift
+        if let path = bundle?.path(forResource: "example", ofType: "xml") {
+            let xmlDictionary = XMLDictionary.dictionaryWithXMLFile(xmlFilePath: path)
+	    // ...
+        }
+```    
 You can then iterate over the dictionary as you would with any other object tree, e.g. one loaded from a Plist.
 
 To access nested nodes and attributes, you can use the valueForKeyPath syntax. For example to get the string value of `<foo>` from the following XML:
@@ -165,32 +199,48 @@ To access nested nodes and attributes, you can use the valueForKeyPath syntax. F
 
 You would write:
 
-	NSString *foo = [xmlDoc valueForKeyPath:@"bar.foo"];
+```swift
+        //TODO: NSString *foo = [xmlDoc valueForKeyPath:@"bar.foo"];
+```   
 
 The above examples assumes that you are using the default setting for `collapseTextNodes` and `alwaysUseArrays`. If `collapseTextNodes` is disabled then you would instead access `<foo>`'s value by writing:
 
-	NSString *foo = [[xmlDoc valueForKeyPath:@"bar.foo"] innerText];
+```swift
+        //TODO: NSString *foo = [[xmlDoc valueForKeyPath:@"bar.foo"] innerText];
+```   
 
 If the `alwaysUseArrays` option is enabled then would use one of the following, depending on the `collapseTextNodes` property:
 
-    NSString *foo = [[xmlDoc valueForKeyPath:@"bar.foo"] firstObject];
-    NSString *foo = [[[xmlDoc valueForKeyPath:@"bar.foo"] firstObject] innerText];
+```swift
+        //TODO: NSString *foo = [[xmlDoc valueForKeyPath:@"bar.foo"] firstObject];
+	//TODO: NSString *foo = [[[xmlDoc valueForKeyPath:@"bar.foo"] firstObject] innerText];
+```    
 
 To get the cliche attribute of `bar`, you could write:
 
-    NSString *barCliche = [xmlDoc[@"bar] attributes][@"cliche"];
-
+```swift
+        //TODO: NSString *barCliche = [xmlDoc[@"bar] attributes][@"cliche"];
+```    
+    
 If the `attributesMode` is set to the default value of `XMLDictionaryAttributesModePrefixed` then you can also do this:
 
-	NSString *barCliche = [xmlDoc valueForKeyPath:@"bar._cliche"];
+```swift
+        //TODO: NSString *barCliche = [xmlDoc valueForKeyPath:@"bar._cliche"];
+```    
 
 Or if it is set to `XMLDictionaryAttributesModeUnprefixed` you would simply do this:
 
-    NSString *barCliche = [xmlDoc valueForKeyPath:@"bar.cliche"];
+```swift
+        //TODO: NSString *barCliche = [xmlDoc valueForKeyPath:@"bar.cliche"];
+```    
     
     
 Release Notes
 ----------------
+
+Version 2.0.0-rc.2
+
+- Swift Port Pre-Release Version (not fully tested)
 
 Version 1.4.1
 
