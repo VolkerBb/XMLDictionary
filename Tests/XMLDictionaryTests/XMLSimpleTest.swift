@@ -32,8 +32,33 @@ class XMLSimpleTest: XCTestCase {
     
     func testExample() {
         if let path = bundle?.path(forResource: "example", ofType: "xml") {
-            let url =  URL(fileURLWithPath: path)
-            self.parse(url: url)
+            guard let xmlDictionary = XMLDictionary.dictionaryWithXMLFile(xmlFilePath: path) else {
+                XCTAssert(false, "parsing error")
+                return
+            }
+            NSLog("dictionary: %@", [xmlDictionary])
+            
+            let value = xmlDictionary.value(forKeyPath: "book.0._id")
+            guard let v = value as? String else {
+                XCTAssert(false, "book not found")
+                return
+            }
+            XCTAssert(v == "bk101", "book not found")
+            
+            let dict = xmlDictionary.dictionaryValue(forKeyPath: "book")
+            XCTAssert((dict!["_id"] as! String) == "bk101", "book not found")
+            
+            let array = xmlDictionary.arrayValue(forKeyPath: "book")
+            XCTAssert(((array![1] as! [String : Any])["_id"] as! String) == "bk102", "book 2 not found")
+            
+            let str = xmlDictionary.stringValue(forKeyPath: "book.1")
+            XCTAssert(str! == "An extra text content of this book.", "book 2 additional text not found")
+            
+            let dict2 = xmlDictionary.dictionaryValue(forKeyPath: "book.1")
+            XCTAssert((dict2!["_id"] as! String) == "bk102", "book not found")
+            
+            let valueList = [xmlDictionary].map({ (($0["book"] as! [Any])[0] as! [String:Any])["_id"] as! String })
+            XCTAssert((valueList.first ?? "") == "bk101", "book id not found")
         }
 
         if let url2 = URL(string: "http://www.ibiblio.org/xml/examples/shakespeare/all_well.xml") {

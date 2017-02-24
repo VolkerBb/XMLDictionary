@@ -60,6 +60,10 @@ public extension Dictionary where Key: ExpressibleByStringLiteral {
         return nil
     }
     
+    public func attributeForKey(key:String) -> String? {
+        return self.attributes()?[key]
+    }
+    
     public func attributes() -> [String : String]? {
         if let attributes = self[XMLDictionaryKeys.xmlDictionaryAttributesKey.rawValue as! Key] as? [String: String] {
             return attributes.count > 0 ? attributes : nil
@@ -137,6 +141,108 @@ public extension Dictionary where Key: ExpressibleByStringLiteral {
             return self.innerXML()
         }
         return XMLDictionaryParser.XMLStringForNode(node: self, withNodeName: nodeName ?? "root")
+    }
+    
+    public func value(forKeyPath keyPath: String) -> Any? {
+        let components = keyPath.components(separatedBy: ".")
+        return self.value(forKeyComponents: components)
+    }
+    
+    func value(forKeyComponents components: [String]) -> Any? {
+        if components.count > 0 {
+            let result = self.map({ keyEx, value -> Any? in
+                let key = String(describing: keyEx)
+                let object:Any? = (key == components[0] ? value : nil)
+                if components.count > 1 {
+                    let slice = components[1..<components.count]
+                    let comps = Array<String>(slice)
+                    if let mapValue = value as? [String : Any] {
+                        return mapValue.value(forKeyComponents: comps)
+                    }
+                    if let mapValue = value as? [Any] {
+                        return mapValue.value(forKeyComponents: comps)
+                    }
+                    return nil
+                }
+                return object
+            }).filter({ (value) -> Bool in
+                return value != nil
+            })
+            if result.count == 1 {
+                return result.first!
+            }
+            return result
+        }
+        return nil
+    }
+    
+    public func arrayValue(forKeyPath keyPath: String) -> [Any]? {
+        if let value = self.value(forKeyPath: keyPath) {
+            if let v = value as? [Any] {
+                return v
+            }
+            return [value]
+        }
+        return nil
+    }
+    
+    public func stringValue(forKeyPath keyPath: String) -> String? {
+        let value = self.value(forKeyPath: keyPath)
+        if let result = value as? String {
+            return result
+        }
+        if let dict = value as? [String : Any] {
+            return dict.innerText() as? String
+        }
+        if let arr = value as? [String] {
+            return arr.first!
+        }
+        return nil
+    }
+    
+    public func dictionaryValue(forKeyPath keyPath: String) -> [String : Any]? {
+        let value = self.value(forKeyPath: keyPath)
+        if let result = value as? [String : Any] {
+            return result
+        }
+        if let arr = value as? [Any],
+            let dict = arr.first as? [String: Any] {
+            return dict
+        }
+        if let str = value as? String {
+            return [XMLDictionaryKeys.xmlDictionaryTextKey.rawValue : str]
+        }
+        return nil
+    }
+    
+}
+
+extension Array {
+    public func value(forKeyPath keyPath: String) -> Any? {
+        let components = keyPath.components(separatedBy: ".")
+        return self.value(forKeyComponents: components)
+    }
+    
+    func value(forKeyComponents components: [String]) -> Any? {
+        if components.count > 0 {
+            guard let index = Int(components.first!) else {
+                return nil
+            }
+            let value = self[index]
+            if components.count > 1 {
+                let slice = components[1..<components.count]
+                let comps = Array<String>(slice)
+                if let mapValue = value as? [String : Any] {
+                    return mapValue.value(forKeyComponents: comps)
+                }
+                if let mapValue = value as? [Any] {
+                    return mapValue.value(forKeyComponents: comps)
+                }
+                return nil
+            }
+            return value
+        }
+        return nil
     }
 }
 
