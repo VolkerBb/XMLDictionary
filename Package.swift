@@ -6,5 +6,5 @@ let package = Package(
         Target(name: "XMLDictionary", dependencies: [])
     ],
     dependencies: [],
-    exclude: ["Tests", "XMLDictionary"]
+    exclude: ["XMLDictionaryTests"]
 )
