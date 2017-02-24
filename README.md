@@ -31,6 +31,7 @@ To install this Swift version add the following line to Dependencies in `Package
 ```swift
 .Package(url: "https://github.com/VolkerBb/XMLDictionary.git", majorVersion: 0)
 ```
+NOTE: Not tagged, so this is not working yet.
 
 XMLDictionaryParser
 ---------------------
