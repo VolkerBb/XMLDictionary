@@ -5,6 +5,8 @@ XMLDictionary is a class designed to simplify parsing and generating of XML on i
 
 Unlike other DOM parsers, XMLDictionary does not attempt to replicate all of the nuances of the XML standard such as the ability to nest tags within text. If you need to represent something like an HTML document then XMLDictionary won't work for you. If you want to use XML as a data interchange format for passing nested data structures then XMLDictionary may well provide a simpler solution than other DOM-based parsers.
 
+The swift port is planned to be used with [IBM Kitura](https://github.com/IBM-Swift/Kitura)
+
 
 Supported OS & SDK Versions
 -----------------------------
@@ -12,16 +14,9 @@ Supported OS & SDK Versions
 * Supported build target - iOS 10.2 / Mac OS 10.12 (Xcode 8.2, Apple LLVM compiler 8.0)
 * Earliest supported deployment target - iOS 8.0 / Mac OS 10.10
 * Earliest compatible deployment target - iOS 4.3 / Mac OS 10.6
+* ... to be tested on IBM's Docker swift-ubuntu Image
 
 NOTE: 'Supported' means that the library has been tested with this version. 'Compatible' means that the library should work on this OS version (i.e. it doesn't rely on any unavailable SDK features) but is no longer being tested for compatibility and may require tweaking or bug fixes to run correctly.
-
-
-ARC Compatibility
-------------------
-
-As of version 1.1, XMLDictionary requires ARC. If you wish to use XMLDictionary in a non-ARC project, just add the -fobjc-arc compiler flag to the XMLDictionary.m class. To do this, go to the Build Phases tab in your target settings, open the Compile Sources group, double-click XMLDictionary.m in the list and type -fobjc-arc into the popover.
-
-If you wish to convert your whole project to ARC, comment out the #error line in XMLDictionary.m, then run the Edit > Refactor > Convert to Objective-C ARC... tool in Xcode and make sure all files that you wish to use ARC for (including XMLDictionary.m) are checked.
 
 
 Thread Safety
@@ -30,11 +25,12 @@ Thread Safety
 XMLDictionary's methods should all be thread safe. It is safe to use multiple XMLDictionaryParsers concurrently on different threads, but it is not safe to call the same parser concurrently on multiple threads.
 
 
-Installation
---------------
+## Installation
+To install this Swift version add the following line to Dependencies in `Package.swift`:
 
-To use the XMLDictionary in an app, just drag the class files into your project.
-
+```swift
+.Package(url: "https://github.com/VolkerBb/XMLDictionary.git", majorVersion: 0)
+```
 
 XMLDictionaryParser
 ---------------------
