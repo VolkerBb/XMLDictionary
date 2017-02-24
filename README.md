@@ -119,7 +119,7 @@ Create a new NSDictionary object from XML-encoded string.
 Create a new NSDictionary object from and XML-encoded file.
 
 ```swift
-    // TODO: - (NSString *)attributeForKey:(NSString *)key; 
+    public func attributeForKey(key:String) -> String?
 ```
 Get the XML attribute for a given key (key name should not include prefix).
 
@@ -159,20 +159,29 @@ Get the contents of the node as an XML-encoded string. This XML string will not 
 Get the node and its content as an XML-encoded string. If the node name is not known, the top level tag will be called `<root>`.
 
 ```swift
-    //TODO: - (NSArray *)arrayValueForKeyPath:(NSString *)keyPath;
+    public func value(forKeyPath keyPath: String) -> Any?
 ```		
-Works just like `valueForKeyPath:` except that the value returned will always be an array. So if there is only a single value, it will be returned as `@[value]`.
+In swift, the Objective-C like `valueForKeyPath:` doesn't exist. Instead, you can use a `map` call to filter your items. However, this method is here to help achieving something similar with `XMLDictionary` and can be used with the following syntax:
 
 ```swift
-    //TODO: - (NSString *)stringValueForKeyPath:(NSString *)keyPath;
+    xmlDictionary.value(forKeyPath: "book.0._id")
 ```		
-Works just like `valueForKeyPath:` except that the value returned will always be a string. So if the value is a dictionary, the text value of `innerText` will be returned, and if the value is an array, the first item will be returned.
-
+NOTE: the path is simply separated with a `.` and an index n of an array must NOT be written as `[n]` but instead as `.n`. In case you are referencing a [String : Any] value in your path, the `.0` notation is referencing the key `["0"]` in that dictionary.
 
 ```swift
-    //TODO: - (NSDictionary *)dictionaryValueForKeyPath:(NSString *)keyPath;
+    public func arrayValue(forKeyPath keyPath: String) -> [Any]?
+```		
+Works just like `value(forKeyPath:)`, except that the value returned will always be an array. So if there is only a single value, it will be returned as `@[value]`.
+
+```swift
+    public func stringValue(forKeyPath keyPath: String) -> String?
+```		
+Works just like `value(forKeyPath:)`, except that the value returned will always be a string. So if the value is a dictionary, the text value of `innerText` will be returned, and if the value is an array, the first item will be returned.
+
+```swift
+    public func dictionaryValue(forKeyPath keyPath: String) -> [String : Any]?
 ```    
-Works just like `valueForKeyPath:` except that the value returned will always be a dictionary. So if the collapseTextNodes option is enabled and the value is a string, this will convert it back to a dictionary before returning, and if the value is an array, the first item will be returned.
+Works just like `value(forKeyPath:)`, except that the value returned will always be a dictionary. So if the collapseTextNodes option is enabled and the value is a string, this will convert it back to a dictionary before returning, and if the value is an array, the first item will be returned.
 
 
 Usage
@@ -200,38 +209,34 @@ To access nested nodes and attributes, you can use the valueForKeyPath syntax. F
 You would write:
 
 ```swift
-        //TODO: NSString *foo = [xmlDoc valueForKeyPath:@"bar.foo"];
+        xmlDictionary.value(forKeyPath: "bar.foo")
 ```   
 
 The above examples assumes that you are using the default setting for `collapseTextNodes` and `alwaysUseArrays`. If `collapseTextNodes` is disabled then you would instead access `<foo>`'s value by writing:
 
 ```swift
-        //TODO: NSString *foo = [[xmlDoc valueForKeyPath:@"bar.foo"] innerText];
+        //TODO: test xmlDictionary.value(forKeyPath: "bar.foo").innerText()
 ```   
-
-If the `alwaysUseArrays` option is enabled then would use one of the following, depending on the `collapseTextNodes` property:
-
-```swift
-        //TODO: NSString *foo = [[xmlDoc valueForKeyPath:@"bar.foo"] firstObject];
-	//TODO: NSString *foo = [[[xmlDoc valueForKeyPath:@"bar.foo"] firstObject] innerText];
-```    
 
 To get the cliche attribute of `bar`, you could write:
 
 ```swift
-        //TODO: NSString *barCliche = [xmlDoc[@"bar] attributes][@"cliche"];
+    if let barNode = xmlDictionary.value(forKeyPath: "bar") as? [String : Any] {
+        let idAttribute = attrs.attributeForKey(key: "cliche")
+	//...
+    }
 ```    
     
 If the `attributesMode` is set to the default value of `XMLDictionaryAttributesModePrefixed` then you can also do this:
 
 ```swift
-        //TODO: NSString *barCliche = [xmlDoc valueForKeyPath:@"bar._cliche"];
+    let barCliche = xmlDictionary.value(forKeyPath: "bar._cliche")
 ```    
 
 Or if it is set to `XMLDictionaryAttributesModeUnprefixed` you would simply do this:
 
 ```swift
-        //TODO: NSString *barCliche = [xmlDoc valueForKeyPath:@"bar.cliche"];
+    let barCliche = xmlDictionary.value(forKeyPath: "bar.cliche")
 ```    
     
     
