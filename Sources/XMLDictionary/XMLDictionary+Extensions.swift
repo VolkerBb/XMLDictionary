@@ -6,7 +6,7 @@
 //
 //
 
-import Cocoa
+import Foundation
 
 enum XMLDictionaryKeys : String {
     case xmlDictionaryAttributesKey = "__attributes",
