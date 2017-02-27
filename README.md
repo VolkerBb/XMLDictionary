@@ -1,7 +1,9 @@
 Purpose
 --------------
 
-NOTE: This swift port is planned to be used with [IBM Kitura](https://github.com/IBM-Swift/Kitura)
+This swift port is planned to be used with [IBM Kitura](https://github.com/IBM-Swift/Kitura)
+
+NOTE: At the moment it's not working as expected on Linux. This seems related to this issue: [NSXMLParser not fully implemented](https://bugs.swift.org/browse/SR-2301)
 
 XMLDictionary is a class designed to simplify parsing and generating of XML on iOS and Mac OS. XMLDictionary is built on top of the NSXMLParser classes, but behaves more like a DOM-style parser rather than SAX parser, in that it creates a tree of objects rather than generating events at the start and end of each node.
 
