@@ -327,7 +327,7 @@ public class XMLDictionaryParser : NSObject, XMLParserDelegate, NSCopying {
             let attributes = dict.attributes()
             var attributeString = ""
             attributes?.forEach({ (key, value) in
-                attributeString = attributeString + " \(key.xmlEncodedString)=\"\(value.xmlEncodedString)\""
+                attributeString = attributeString + " \(key.xmlEncodedString())=\"\(value.xmlEncodedString())\""
             })
             var innerXML = dict.innerXML()
             if innerXML.characters.count > 0 {
