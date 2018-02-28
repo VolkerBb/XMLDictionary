@@ -85,7 +85,7 @@ public class XMLDictionaryParser : NSObject, XMLParserDelegate, NSCopying {
         if (trimWhiteSpace) {
             text = text?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
         }
-        if let processingText = text, processingText.characters.count > 0 {
+        if let processingText = text, processingText.count > 0 {
             if let top = stack?.last {
                 if let existing = top[XMLDictionaryKeys.xmlDictionaryTextKey.rawValue] {
                     if let e = existing as? XMLArrayHolder {
@@ -329,8 +329,8 @@ public class XMLDictionaryParser : NSObject, XMLParserDelegate, NSCopying {
             attributes?.forEach({ (key, value) in
                 attributeString = attributeString + " \(key.xmlEncodedString())=\"\(value.xmlEncodedString())\""
             })
-            var innerXML = dict.innerXML()
-            if innerXML.characters.count > 0 {
+            let innerXML = dict.innerXML()
+            if innerXML.count > 0 {
                 return "<\(nodeName)\(attributeString)>\(innerXML)</\(nodeName)>"
             }
             else {

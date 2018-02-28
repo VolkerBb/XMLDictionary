@@ -16,7 +16,7 @@ enum XMLDictionaryKeys : String {
     xmlDictionaryAttributePrefix = "_"
     
     func length() -> Int {
-        return self.rawValue.characters.count
+        return self.rawValue.count
     }
     func isArtificialNonAttributesKey() -> Bool {
         switch self {
