@@ -247,6 +247,10 @@ Release Notes
 
 Version 2.0.0-rc.2
 
+- Integrated Swift 4 changes and merged a bugfix related to attribute parsing.
+
+Version 2.0.0-rc.2
+
 - Swift Port Pre-Release Version (not fully tested)
 
 Version 1.4.1
