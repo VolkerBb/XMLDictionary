@@ -16,7 +16,7 @@ enum XMLDictionaryKeys : String {
     xmlDictionaryAttributePrefix = "_"
     
     func length() -> Int {
-        return self.rawValue.characters.count
+        return self.rawValue.count
     }
     func isArtificialNonAttributesKey() -> Bool {
         switch self {
@@ -83,7 +83,7 @@ public extension Dictionary where Key: ExpressibleByStringLiteral {
                 let sKey = String(describing: key)
                 if sKey.hasPrefix(XMLDictionaryKeys.xmlDictionaryAttributePrefix.rawValue) {
                     let index = sKey.index(sKey.startIndex, offsetBy: XMLDictionaryKeys.xmlDictionaryAttributePrefix.length())
-                    result[sKey.substring(from: index)] = sValue
+                    result[String(sKey.suffix(from: index))] = sValue
                 }
             }
             return result.count > 0 ? result : nil
