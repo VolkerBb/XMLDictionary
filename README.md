@@ -245,6 +245,10 @@ Or if it is set to `XMLDictionaryAttributesModeUnprefixed` you would simply do t
 Release Notes
 ----------------
 
+Version 2.0.0-rc.4
+
+- Integrated Swift 4 changes and merged a bugfix related to attribute parsing.
+
 Version 2.0.0-rc.2
 
 - Swift Port Pre-Release Version (not fully tested)
