@@ -30,9 +30,12 @@ XMLDictionary's methods should all be thread safe. It is safe to use multiple XM
 To install this Swift version add the following line to Dependencies in `Package.swift`:
 
 ```swift
-.Package(url: "https://github.com/VolkerBb/XMLDictionary.git", Version(2, 0, 0, prereleaseIdentifiers: ["rc.2"]))
+.Package(url: "https://github.com/VolkerBb/XMLDictionary.git", Version(2, 0, 0, prereleaseIdentifiers: ["rc.5"]))
 ```
 NOTE: This is prerelease software and not fully tested yet. Specifically, only the default settings for the `XMLDictionaryParser` have been tested so far.
+
+## Tests
+To test parsing/decoding run `make test`. The tests are using a file resource, thus the added makefile. See [SwiftResourceHandlingExample](https://github.com/vadimeisenbergibm/SwiftResourceHandlingExample) for more info.
 
 XMLDictionaryParser
 ---------------------
@@ -244,6 +247,10 @@ Or if it is set to `XMLDictionaryAttributesModeUnprefixed` you would simply do t
     
 Release Notes
 ----------------
+
+Version 2.0.0-rc.5
+
+- Integrated test cases.
 
 Version 2.0.0-rc.4
 
